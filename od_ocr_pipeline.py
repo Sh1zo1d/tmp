@@ -151,9 +151,7 @@ def video_processing(video_path, new_lst=None):
                         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                         cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
     
-                          # визуализация результатов на кадре
-                        annotated_frame = results[0].plot()
-                  
+          
                           # отрисовка треков и идентификаторов
                         for box, track_id, confidence in zip(boxes, track_ids, confidences):
                             x, y, w, h = box  # координаты центра и размеры бокса
