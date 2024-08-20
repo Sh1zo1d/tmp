@@ -60,8 +60,8 @@ def video_processing(video_path, new_lst=None):
     for filename in filenames:
         print(filename)
           # читаем видео
-#         file_path = os.path.join(video_path, filename)
-        cap = cv2.VideoCapture(filename)
+        file_path = os.path.join(video_path, filename)
+        cap = cv2.VideoCapture(file_path)
         # проверка успешного открытия видео
         if not cap.isOpened():
             print(f"Ошибка открытия {file_path}")
