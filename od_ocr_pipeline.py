@@ -46,9 +46,9 @@ def save_annotation(plate, image_shape):
 
 def video_processing(video_path, new_lst=None):
     # создаем папки, если их нет
-    img_dir = 'whisper/new_data/final_test/img'
-    ann_dir = 'whisper/new_data/final_test/ann'
-    processed_video_dir = 'whisper/new_data/final_test/processed_video'
+    img_dir = 'whisper/new_data/final_test_20_08_2024/img'
+    ann_dir = 'whisper/new_data/final_test_20_08_2024/ann'
+    processed_video_dir = 'whisper/new_data/final_test_20_08_2024/processed_video'
     os.makedirs(img_dir, exist_ok=True)  
     os.makedirs(ann_dir, exist_ok=True)
     os.makedirs(processed_video_dir, exist_ok=True)
@@ -60,11 +60,11 @@ def video_processing(video_path, new_lst=None):
     for filename in filenames:
         print(filename)
           # читаем видео
-        file_path = os.path.join(video_path, filename)
-        cap = cv2.VideoCapture(file_path)
+#         file_path = os.path.join(video_path, filename)
+        cap = cv2.VideoCapture(filename)
         # проверка успешного открытия видео
         if not cap.isOpened():
-            print(f"Ошибка открытия {video_path}")
+            print(f"Ошибка открытия {file_path}")
             exit()
         # получаем данные о fps в видео
         # поулчаем FPS w h видео
@@ -97,32 +97,31 @@ def video_processing(video_path, new_lst=None):
                 time_from_start_in_sec = frame_count / fps
 
                 # предсказываем боксы номерных пластин при помощи Yolo
-                yolo_pred = model_od.track(frame, verbose=False, presist=True)
+                yolo_pred = model_od.track(frame, verbose=False, persist=True)
                 if yolo_pred[0].boxes is not None and yolo_pred[0].boxes.id is not None:
                 # если уверенность модели меньше порога - откидываем
-                  boxes_xyxy = yolo_pred[0].boxes.xyxy.cpu().numpy()
-                  boxes = yolo_pred[0].boxes.xywh.cpu().numpy()
-                  track_ids = yolo_pred[0].boxes.id.int().cpu().tolist()  # идентификаторы треков
-                  confidences = yolo_pred[0].boxes.conf.cpu().numpy()  # уверенность в боксе
-                  annotated_frame = results[0].plot()
+                    boxes_xyxy = yolo_pred[0].boxes.xyxy.cpu().numpy()
+                    boxes = yolo_pred[0].boxes.xywh.cpu().numpy()
+                    track_ids = yolo_pred[0].boxes.id.int().cpu().tolist()  # идентификаторы треков
+                    confidences = yolo_pred[0].boxes.conf.cpu().numpy()  # уверенность в боксе
+                    annotated_frame = results[0].plot()
 
-                  if len(boxes) == 0:
-                    continue
+                    if len(boxes) == 0:
+                        continue
                   # отрисовка треков
-                  for box, track_id in zip(boxes, track_ids):
-                      x, y, w, h = box  # координаты центра и размеры бокса
-                      track = track_history[track_id]
-                      track.append((float(x), float(y)))  # добавление координат центра объекта в историю
-                      if len(track) > 30:  # ограничение длины истории до 30 кадров
-                          track.pop(0)
-                  for box in boxes_xyxy:
-                    cropped_image = crop_image(frame, box)
-                    ocr_prediction = model_ocr(cropped_image)
+                    for box, track_id in zip(boxes, track_ids):
+                        x, y, w, h = box  # координаты центра и размеры бокса
+                        track = track_history[track_id]
+                        track.append((float(x), float(y)))  # добавление координат центра объекта в историю
+                        if len(track) > 30:  # ограничение длины истории до 30 кадров
+                            track.pop(0)
+                    for box in boxes_xyxy:
+                        cropped_image = crop_image(frame, box)
+                        ocr_prediction = model_ocr(cropped_image)
   
                       # проверка распознанного номера на соответствие маскам
-                    if not is_valid_plate(ocr_prediction):
-                      continue  
-                        # проверка, если та же пластина уже была задетектирована
+                        if not is_valid_plate(ocr_prediction):
+                          continue  
   
   
   
@@ -165,9 +164,9 @@ def video_processing(video_path, new_lst=None):
                             cv2.putText(annotated_frame, f"ID: {track_id} Conf: {confidence:.2f}", (x1, y1 - 10),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                     
-                      out.write(annotated_frame)  # запись кадра в выходное видео
-              else:
-                  out.write(frame)  # запись кадра в выходное видео
+                    out.write(annotated_frame)  # запись кадра в выходное видео
+            else:
+                out.write(frame)  # запись кадра в выходное видео
                 
         cap.release()
     
